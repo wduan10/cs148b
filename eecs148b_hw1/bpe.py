@@ -1,6 +1,7 @@
 import os
 import regex as re
 
+
 def train_bpe(
     input_path: str | os.PathLike,
     vocab_size: int,
@@ -28,12 +29,12 @@ def train_bpe(
 
     for pretoken in pretoken_counts:
         pretoken_splits[pretoken] = [bytes([b]) for b in pretoken]
-    
+
     # initialize vocab
     vocab = {}
     for i in range(256):
         vocab[i] = bytes([i])
-    
+
     for special_token in special_tokens:
         vocab[len(vocab)] = bytes(special_token, "utf-8")
 
@@ -45,7 +46,8 @@ def train_bpe(
         for i in range(len(tokens) - 1):
             token1 = tokens[i]
             token2 = tokens[i + 1]
-            pair_counts[(token1, token2)] = pair_counts.get((token1, token2), 0) + count
+            pair_counts[(token1, token2)] = pair_counts.get(
+                (token1, token2), 0) + count
             if (token1, token2) not in pair_to_words:
                 pair_to_words[(token1, token2)] = set()
             pair_to_words[(token1, token2)].add(pretoken)
@@ -58,6 +60,10 @@ def train_bpe(
             key=lambda x: (x[1], x[0])
         )
 
+        # update our dictionaries
+        # concatenate the two bytes
+        merged_bytes = best_pair[0] + best_pair[1]
+
         pair_counts[best_pair] = 0
         words_affected = pair_to_words[best_pair]
         for pretoken in words_affected:
@@ -69,19 +75,27 @@ def train_bpe(
             while i < len(tokens):
                 # check if we can merge
                 if i < len(tokens) - 1 and (tokens[i], tokens[i+1]) == best_pair:
-                    new_tokens.append(best_pair[0] + best_pair[1])
+                    new_tokens.append(merged_bytes)
                     if i > 0:
-                        pair_counts[(tokens[i-1], tokens[i])] = pair_counts.get((tokens[i-1], tokens[i]), 0) - pretoken_counts[pretoken]
-                        pair_counts[(tokens[i-1], best_pair[0] + best_pair[1])] = pair_counts.get((tokens[i-1], best_pair[0] + best_pair[1]), 0) + pretoken_counts[pretoken]
-                        if (tokens[i-1], best_pair[0] + best_pair[1]) not in pair_to_words:
-                            pair_to_words[(tokens[i-1], best_pair[0] + best_pair[1])] = set()
-                        pair_to_words[(tokens[i-1], best_pair[0] + best_pair[1])].add(pretoken)
+                        pair_counts[(tokens[i-1], tokens[i])] = pair_counts.get(
+                            (tokens[i-1], tokens[i]), 0) - pretoken_counts[pretoken]
+
+                        new_pair = (tokens[i-1], merged_bytes)
+                        pair_counts[new_pair] = pair_counts.get(
+                            new_pair, 0) + pretoken_counts[pretoken]
+                        if new_pair not in pair_to_words:
+                            pair_to_words[new_pair] = set()
+                        pair_to_words[new_pair].add(pretoken)
                     if i < len(tokens) - 2:
-                        pair_counts[(tokens[i+1], tokens[i+2])] = pair_counts.get((tokens[i+1], tokens[i+2]), 0) - pretoken_counts[pretoken]
-                        pair_counts[(best_pair[0] + best_pair[1], tokens[i+2])] = pair_counts.get((best_pair[0] + best_pair[1], tokens[i+2]), 0) + pretoken_counts[pretoken]
-                        if (best_pair[0] + best_pair[1], tokens[i+2]) not in pair_to_words:
-                            pair_to_words[(best_pair[0] + best_pair[1], tokens[i+2])] = set()
-                        pair_to_words[(best_pair[0] + best_pair[1], tokens[i+2])].add(pretoken)
+                        pair_counts[(tokens[i+1], tokens[i+2])] = pair_counts.get(
+                            (tokens[i+1], tokens[i+2]), 0) - pretoken_counts[pretoken]
+                        
+                        new_pair = (merged_bytes, tokens[i+2])
+                        pair_counts[new_pair] = pair_counts.get(
+                            new_pair, 0) + pretoken_counts[pretoken]
+                        if new_pair not in pair_to_words:
+                            pair_to_words[new_pair] = set()
+                        pair_to_words[new_pair].add(pretoken)
                     i += 2  # skip both
                 else:
                     new_tokens.append(tokens[i])
@@ -90,7 +104,7 @@ def train_bpe(
             pretoken_splits[pretoken] = new_tokens
 
         # merge pair of tokens and update pretoken_splits
-        vocab[len(vocab)] = best_pair[0] + best_pair[1] # concatenate the two bytes
+        vocab[len(vocab)] = merged_bytes
         merges.append(best_pair)
-    
+
     return vocab, merges
