@@ -6,18 +6,20 @@ class Tokenizer:
     def __init__(self, vocab, merges, special_tokens=None):
         if special_tokens is not None:
             for special_token in special_tokens:
-                if special_token not in vocab:
-                    vocab[len(vocab)] = special_token
+                token_bytes = special_token.encode("utf-8")
+                if token_bytes not in vocab.values():
+                    vocab[len(vocab)] = token_bytes
 
         self.vocab = vocab
         self.vocab_swapped = {v: k for k, v in vocab.items()}
         self.merges = merges
         self.special_tokens = special_tokens
 
+    @classmethod
     def from_files(cls, vocab_filepath, merges_filepath, special_tokens=None):
         vocab = pickle.load(open(vocab_filepath, 'rb'))
         merges = pickle.load(open(merges_filepath, 'rb'))
-        return Tokenizer(vocab, merges, special_tokens)
+        return cls(vocab, merges, special_tokens)
 
     def encode(self, text: str) -> list[int]:
         if self.special_tokens:
