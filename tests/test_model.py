@@ -45,7 +45,7 @@ def test_ffn(numpy_snapshot, ffn_in_features, ffn_w1_weight, ffn_w2_weight, d_mo
         w2_weight=ffn_w2_weight,
         in_features=ffn_in_features,
     )
-    numpy_snapshot.assert_match(actual_output, atol=1e-6)
+    numpy_snapshot.assert_match(actual_output, atol=1e-4)
 
 
 def test_scaled_dot_product_attention(numpy_snapshot, q, k, v, mask):

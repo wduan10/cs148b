@@ -8,7 +8,7 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding
+from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward
 
 
 def run_linear(
@@ -85,7 +85,10 @@ def run_ffn(
     # You can also manually assign the weights
     # ffn.fc1.weight.data = w1_weight
     # ffn.fc2.weight.data = w2_weight
-    raise NotImplementedError
+    ffn = positionwise_feedforward.PositionwiseFeedForward(d_model, d_ff, device=w1_weight.device, dtype=w1_weight.dtype,)
+    ffn.load_state_dict({'linear1.W': w1_weight, 'linear2.W': w2_weight})
+    output = ffn(in_features)
+    return output
 
 
 def run_layernorm(
@@ -108,7 +111,10 @@ def run_layernorm(
     Returns:
         Float[Tensor, "... d_model"]: Tensor with the output of running LayerNorm on `in_features`.
     """
-    raise NotImplementedError
+    layernorm_layer = layernorm.LayerNorm(d_model, eps)
+    layernorm_layer.load_state_dict({'g': weight, 'b': bias})
+    output = layernorm_layer(in_features)
+    return output
 
 
 def run_sinusoidal_pe(
