@@ -33,6 +33,7 @@ class Tokenizer:
         PAT = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
 
         output = []
+        visited = {}
         for chunk in chunks:
 
             if self.special_tokens is not None and chunk in self.special_tokens:
@@ -46,6 +47,9 @@ class Tokenizer:
                 pretokens.append(pretoken_byte_array)
             
             for pretoken in pretokens:
+                if tuple(pretoken) in visited:
+                    output += visited[tuple(pretoken)]
+                    continue
                 for token1, token2 in self.merges:
                     new_pretoken = []
                     i = 0
@@ -58,7 +62,9 @@ class Tokenizer:
                             i += 1
                     pretoken = new_pretoken
                 
+                visited[tuple(pretoken)] = []
                 for token in pretoken:
+                    visited[tuple(pretoken)].append(self.vocab_swapped[token])
                     output.append(self.vocab_swapped[token])
             
         return output
