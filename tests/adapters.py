@@ -8,7 +8,7 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from eecs148b_hw1 import train_bpe, tokenizer, linear
+from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding
 
 
 def run_linear(
@@ -30,7 +30,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear_layer = linear.Linear(d_in, d_out, device=weights.device, dtype=weights.dtype)
-    linear_layer.load_state_dict({"W": weights})
+    linear_layer.load_state_dict({'W': weights})
     output = linear_layer(in_features)
     return output
 
@@ -53,7 +53,10 @@ def run_embedding(
     Returns:
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
-    raise NotImplementedError
+    embedding_layer = embedding.Embedding(vocab_size, d_model)
+    embedding_layer.load_state_dict({'embedding_matrix': weights})
+    output = embedding_layer(token_ids)
+    return output
 
 
 def run_ffn(
