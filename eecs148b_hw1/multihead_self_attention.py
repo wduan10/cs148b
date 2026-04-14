@@ -11,10 +11,10 @@ class MultiHeadSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
 
         # Standard separate projections
-        self.W_q = linear.Linear(d_model, d_model, device=device, dtype=dtype)
-        self.W_k = linear.Linear(d_model, d_model, device=device, dtype=dtype)
-        self.W_v = linear.Linear(d_model, d_model, device=device, dtype=dtype)
-        self.W_o = linear.Linear(d_model, d_model, device=device, dtype=dtype)
+        self.q_proj = linear.Linear(d_model, d_model, device=device, dtype=dtype)
+        self.k_proj = linear.Linear(d_model, d_model, device=device, dtype=dtype)
+        self.v_proj = linear.Linear(d_model, d_model, device=device, dtype=dtype)
+        self.output_proj = linear.Linear(d_model, d_model, device=device, dtype=dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x shape: (..., T, D)
@@ -23,9 +23,9 @@ class MultiHeadSelfAttention(nn.Module):
             raise ValueError(f"Expected last dim {self.d_model}, got {D}")
 
         # Project
-        q = self.W_q(x)   # (..., T, D)
-        k = self.W_k(x)   # (..., T, D)
-        v = self.W_v(x)   # (..., T, D)
+        q = self.q_proj(x)   # (..., T, D)
+        k = self.k_proj(x)   # (..., T, D)
+        v = self.v_proj(x)   # (..., T, D)
 
         # Split into heads:
         # (..., T, D) -> (..., T, H, Hd) -> (..., H, T, Hd)
@@ -46,4 +46,4 @@ class MultiHeadSelfAttention(nn.Module):
         # (..., H, T, Hd) -> (..., T, H, Hd) -> (..., T, D)
         out = out.transpose(-3, -2).contiguous().reshape(*batch_dims, T, D)
 
-        return self.W_o(out)
+        return self.output_proj(out)

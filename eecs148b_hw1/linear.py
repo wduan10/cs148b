@@ -8,12 +8,12 @@ class Linear(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        self.W = nn.Parameter(
+        self.weight = nn.Parameter(
             torch.empty(out_features, in_features, device=device, dtype=dtype)
         )
 
         sigma = (2 / (in_features + out_features)) ** 0.5
-        nn.init.trunc_normal_(self.W, mean=0.0, std=sigma, a=-3*sigma, b=3*sigma)
+        nn.init.trunc_normal_(self.weight, mean=0.0, std=sigma, a=-3*sigma, b=3*sigma)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x @ self.W.transpose(-1, -2)
+        return x @ self.weight.transpose(-1, -2)

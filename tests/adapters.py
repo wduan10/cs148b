@@ -8,7 +8,7 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward, sinusoidal_positional_embedding, softmax, scaled_dot_product_attention, multihead_self_attention
+from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward, sinusoidal_positional_embedding, softmax, scaled_dot_product_attention, multihead_self_attention, transformer_block
 
 
 def run_linear(
@@ -30,7 +30,7 @@ def run_linear(
         Float[Tensor, "... d_out"]: The transformed output of your linear module.
     """
     linear_layer = linear.Linear(d_in, d_out, device=weights.device, dtype=weights.dtype)
-    linear_layer.load_state_dict({'W': weights})
+    linear_layer.load_state_dict({'weight': weights})
     output = linear_layer(in_features)
     return output
 
@@ -86,7 +86,7 @@ def run_ffn(
     # ffn.fc1.weight.data = w1_weight
     # ffn.fc2.weight.data = w2_weight
     ffn = positionwise_feedforward.PositionwiseFeedForward(d_model, d_ff, device=w1_weight.device, dtype=w1_weight.dtype,)
-    ffn.load_state_dict({'linear1.W': w1_weight, 'linear2.W': w2_weight})
+    ffn.load_state_dict({'fc1.weight': w1_weight, 'fc2.weight': w2_weight})
     output = ffn(in_features)
     return output
 
@@ -112,7 +112,7 @@ def run_layernorm(
         Float[Tensor, "... d_model"]: Tensor with the output of running LayerNorm on `in_features`.
     """
     layernorm_layer = layernorm.LayerNorm(d_model, eps)
-    layernorm_layer.load_state_dict({'g': weight, 'b': bias})
+    layernorm_layer.load_state_dict({'weight': weight, 'bias': bias})
     output = layernorm_layer(in_features)
     return output
 
@@ -181,10 +181,10 @@ def run_multihead_self_attention(
     """
     msa = multihead_self_attention.MultiHeadSelfAttention(d_model, num_heads)
     msa.load_state_dict({
-        'W_q.W': q_proj_weight,
-        'W_k.W': k_proj_weight,
-        'W_v.W': v_proj_weight,
-        'W_o.W': o_proj_weight,
+        'q_proj.weight': q_proj_weight,
+        'k_proj.weight': k_proj_weight,
+        'v_proj.weight': v_proj_weight,
+        'output_proj.weight': o_proj_weight,
     })
     output = msa(in_features)
     return output
@@ -256,7 +256,10 @@ def run_transformer_block(
         Float[Tensor, "batch sequence_length d_model"] Tensor with the output of
         running the Transformer block on the input features.
     """
-    raise NotImplementedError
+    tb = transformer_block.TransformerBlock(d_model, num_heads, d_ff)
+    tb.load_state_dict(weights)
+    output = tb(in_features)
+    return output
 
 
 def run_transformer_lm(
