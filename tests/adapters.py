@@ -8,7 +8,7 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward
+from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward, sinusoidal_positional_embedding
 
 
 def run_linear(
@@ -123,7 +123,8 @@ def run_sinusoidal_pe(
     token_positions: Int[Tensor, " ... sequence_length"],
 ) -> Float[Tensor, " ... sequence_length d_model"]:
     """Return sinusoidal positional embeddings for the given token positions."""
-    raise NotImplementedError
+    spe = sinusoidal_positional_embedding.SinusoidalPositionalEmbedding(max_seq_len, d_model)
+    return spe(token_positions)
 
 
 def run_scaled_dot_product_attention(
