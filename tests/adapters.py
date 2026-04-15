@@ -8,7 +8,20 @@ import torch
 from jaxtyping import Bool, Float, Int
 from torch import Tensor
 
-from eecs148b_hw1 import train_bpe, tokenizer, linear, embedding, layernorm, positionwise_feedforward, sinusoidal_positional_embedding, softmax, scaled_dot_product_attention, multihead_self_attention, transformer_block
+from eecs148b_hw1 import (
+    train_bpe,
+    tokenizer,
+    linear,
+    embedding,
+    layernorm,
+    positionwise_feedforward,
+    sinusoidal_positional_embedding,
+    softmax,
+    scaled_dot_product_attention,
+    multihead_self_attention,
+    transformer_block,
+    transformer_lm
+)
 
 
 def run_linear(
@@ -54,7 +67,7 @@ def run_embedding(
         Float[Tensor, "... d_model"]: Batch of embeddings returned by your Embedding layer.
     """
     embedding_layer = embedding.Embedding(vocab_size, d_model)
-    embedding_layer.load_state_dict({'embedding_matrix': weights})
+    embedding_layer.load_state_dict({'weight': weights})
     output = embedding_layer(token_ids)
     return output
 
@@ -343,7 +356,10 @@ def run_transformer_lm(
         Float[Tensor, "batch_size sequence_length vocab_size"]: Tensor with the predicted unnormalized
         next-word distribution for each token.
     """
-    raise NotImplementedError
+    transformer = transformer_lm.TransformerLanguageModel(vocab_size, context_length, d_model, num_heads, d_ff, num_layers)
+    transformer.load_state_dict(weights)
+    output = transformer(in_indices)
+    return output
 
 
 def run_get_batch(
