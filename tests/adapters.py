@@ -20,7 +20,9 @@ from eecs148b_hw1 import (
     scaled_dot_product_attention,
     multihead_self_attention,
     transformer_block,
-    transformer_lm
+    transformer_lm,
+    cross_entropy_loss,
+    data_loading
 )
 
 
@@ -382,7 +384,7 @@ def run_get_batch(
         is the sampled input sequences, and the second tuple item is the corresponding
         language modeling labels.
     """
-    raise NotImplementedError
+    return data_loading.get_batch(dataset, batch_size, context_length, device)
 
 
 def run_softmax(in_features: Float[Tensor, " ..."], dim: int) -> Float[Tensor, " ..."]:
@@ -416,7 +418,7 @@ def run_cross_entropy(
     Returns:
         Float[Tensor, ""]: The average cross-entropy loss across examples.
     """
-    raise NotImplementedError
+    return cross_entropy_loss.cross_entropy_loss(inputs, targets)
 
 
 def get_tokenizer(
