@@ -29,4 +29,9 @@ class TransformerBlock(nn.Module):
         # Second sublayer: pre-norm feedforward + residual
         x = x + self.ffn(self.ln2(x))
 
+
+        # ablation version:
+        # x = x + self.attn(x)
+        # x = x + self.ffn(x)
+
         return x

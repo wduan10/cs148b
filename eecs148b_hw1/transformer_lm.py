@@ -89,7 +89,8 @@ class TransformerLanguageModel(nn.Module):
         pos_emb = self.pos_embeddings(positions)
 
         # broadcast add -> (..., seq_len, d_model)
-        x = tok_emb + pos_emb
+        # x = tok_emb + pos_emb
+        x = tok_emb # ablation: without positional embedding
 
         # transformer stack
         for layer in self.layers:
@@ -97,6 +98,7 @@ class TransformerLanguageModel(nn.Module):
 
         # final layer norm
         x = self.ln_final(x)
+        # in a layernorm ablation ablation, I comment the above line out
 
         # vocab logits: (..., seq_len, vocab_size)
         logits = self.lm_head(x)
